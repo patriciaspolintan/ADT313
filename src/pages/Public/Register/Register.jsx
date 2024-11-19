@@ -78,7 +78,7 @@ function Register() {
 
         await axios({
             method: 'post',
-            url: '/admin/register',
+            url: '/user/register',
             data,
             headers: { 'Access-Control-Allow-Origin': '*' },
         })
@@ -94,6 +94,7 @@ function Register() {
                 alert(e.response.data.message);
             });
     };
+
 
     useEffect(() => {
         setDebounceState(true);

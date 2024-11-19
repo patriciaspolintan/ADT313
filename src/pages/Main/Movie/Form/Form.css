@@ -1,0 +1,13 @@
+.search-container{
+    max-height: 200px;
+    overlay: auto;
+}
+
+.search-container .search-movie p:hover{
+    background-color: pink;
+}
+
+.poster-image{
+    width: 150px;
+    height: auto;
+}

@@ -54,7 +54,7 @@ function Login() {
       .then((res) => {
         console.log(res);
         localStorage.setItem('accessToken', res.data.access_token);
-        navigate('/main/dashboard');
+        navigate('/main/movies');
         setStatus('idle');
       })
       .catch((e) => {
@@ -84,7 +84,7 @@ function Login() {
                   onChange={(e) => handleOnChange(e, 'email')}
                 />
               </div>
-              {debounceState && isFieldsDirty && email == '' && (
+              {debounceState && isFieldsDirty && email === '' && (
                 <span className='errors'>This field is required</span>
               )}
             </div>
@@ -98,7 +98,7 @@ function Login() {
                   onChange={(e) => handleOnChange(e, 'password')}
                 />
               </div>
-              {debounceState && isFieldsDirty && password == '' && (
+              {debounceState && isFieldsDirty && password === '' && (
                 <span className='errors'>This field is required</span>
               )}
             </div>
@@ -121,11 +121,11 @@ function Login() {
                     });
                   } else {
                     setIsFieldsDirty(true);
-                    if (email == '') {
+                    if (email === '') {
                       emailRef.current.focus();
                     }
 
-                    if (password == '') {
+                    if (password === '') {
                       passwordRef.current.focus();
                     }
                   }

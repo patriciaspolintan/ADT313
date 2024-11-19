@@ -5,6 +5,9 @@ import './index.css';
 import Login from './pages/Public/Login/Login';
 import Dashboard from './pages/Main/Dashboard/Dashboard';
 import Main from './pages/Main/Main';
+import Movie from './pages/Main/Movie/Movie';
+import List from './pages/Main/Movie/List/List';
+import Form from './pages/Main/Movie/Form/Form';
 import Register from './pages/Public/Register/Register';
 
 const router = createBrowserRouter([
@@ -23,6 +26,20 @@ const router = createBrowserRouter([
       {
         path: '/main/dashboard',
         element: <Dashboard />,
+      },
+      {
+        path: '/main/movies',
+        element: <Movie />,
+        children: [
+          {
+            path: '/main/movies',
+            element: <List />,
+          },
+          {
+            path: '/main/movies/form/:movieId?',
+            element: <Form />,
+          },
+        ],
       },
     ],
   },
