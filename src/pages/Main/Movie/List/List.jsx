@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import './List.css';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+
 const List = () => {
     const accessToken = localStorage.getItem('accessToken');
     const navigate = useNavigate();
@@ -13,6 +14,7 @@ const List = () => {
             setList(response.data);
         });
     };
+
     useEffect(() => {
         getMovies();
     }, []);
@@ -29,18 +31,16 @@ const List = () => {
                     },
                 })
                 .then(() => {
-                    //update list by modifying the movie list array
-                    const tempList = [...list];
-                    const index = list.findIndex((movie) => movie.id === id);
-                    if (index !== undefined || index !== -1) {
-                        tempList.splice(index, 1);
-                        setList(tempList);
-                    }
-
-                    //update list by requesting again to api
-                    // getMovies();
+                    // Update the movie list by removing the deleted movie
+                    const updatedList = list.filter((movie) => movie.id !== id);
+                    setList(updatedList);
                 });
         }
+    };
+
+    const handleUpdate = (id) => {
+        // Navigate to the form with the movie ID to edit
+        navigate('/main/movies/form/' + id);
     };
 
     return (
@@ -66,15 +66,13 @@ const List = () => {
                     </thead>
                     <tbody>
                         {list.map((movie) => (
-                            <tr>
+                            <tr key={movie.id}>
                                 <td>{movie.id}</td>
                                 <td>{movie.title}</td>
                                 <td>
                                     <button
                                         type='button'
-                                        onClick={() => {
-                                            navigate('/main/movies/form/' + movie.id);
-                                        }}
+                                        onClick={() => handleUpdate(movie.id)}
                                     >
                                         Edit
                                     </button>

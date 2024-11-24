@@ -19,7 +19,8 @@ $parts = explode("/", $_SERVER["REQUEST_URI"]);
 // $http_authorization = $header["Authorization"];
 
 //database config
-$database = new Database("localhost", "movieprojectdb", "root", "password");
+//$database = new Database("localhost", "movieprojectdb", "root", "password");
+$database = new Database("127.0.0.1:3307", "movieprojectdb", "root", "");
 $database->getConnection();
 $user_gateway = new UserGateway($database);
 
