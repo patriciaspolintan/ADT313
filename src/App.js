@@ -5,10 +5,12 @@ import './index.css';
 import Login from './pages/Public/Login/Login';
 import Dashboard from './pages/Main/Dashboard/Dashboard';
 import Main from './pages/Main/Main';
-import Movie from './pages/Main/Movie/Movie';
-import List from './pages/Main/Movie/List/List';
-import Form from './pages/Main/Movie/Form/Form';
 import Register from './pages/Public/Register/Register';
+import Movie from './pages/Main/Movie/Movie';
+import Lists from './pages/Main/Movie/List/List';
+import Form from './pages/Main/Movie/Form/Form';
+import CastForm from './pages/Main/Movie/Form/Cast/CastForm';
+// import Cast from './pages/Main/Movie/Cast/Cast'; // Import the Cast component
 
 const router = createBrowserRouter([
   {
@@ -24,20 +26,30 @@ const router = createBrowserRouter([
     element: <Main />,
     children: [
       {
-        path: '/main/dashboard',
-        element: <Dashboard />,
-      },
-      {
         path: '/main/movies',
         element: <Movie />,
         children: [
           {
             path: '/main/movies',
-            element: <List />,
+            element: <Lists />,
           },
           {
             path: '/main/movies/form/:movieId?',
             element: <Form />,
+            children: [
+              {
+                path: 'cast-and-crews',
+                element: <h1>Cast Placeholder</h1>, // Placeholder for Cast
+              },
+              {
+                path: 'photos',
+                element: <h1>Photos Placeholder</h1>, // Placeholder for Photos
+              },
+              {
+                path: 'videos',
+                element: <h1>Videos Placeholder</h1>, // Placeholder for Videos
+              },
+            ],
           },
         ],
       },
@@ -45,9 +57,10 @@ const router = createBrowserRouter([
   },
 ]);
 
+
 function App() {
   return (
-    <div className='App'>
+    <div className="App">
       <RouterProvider router={router} />
     </div>
   );

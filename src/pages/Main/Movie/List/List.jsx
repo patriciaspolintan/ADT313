@@ -8,8 +8,8 @@ const List = () => {
     const navigate = useNavigate();
     const [list, setList] = useState([]);
 
+    // Function to fetch movies from the API or database
     const getMovies = () => {
-        //get the movies from the api or database
         axios.get('/movies').then((response) => {
             setList(response.data);
         });
@@ -19,22 +19,51 @@ const List = () => {
         getMovies();
     }, []);
 
-    const handleDelete = (id) => {
+    // Function to update IDs in the database after deletion
+    const updateMovieIds = (updatedMovies) => {
+        updatedMovies.forEach((movie, index) => {
+            const newId = index + 1; // New ID starts from 1
+            if (movie.id !== newId) {
+                axios.put(`/movies/${movie.id}`, { id: newId }, {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                });
+            }
+        });
+    };
+
+    // Handle delete action
+    const handleDelete = async (id) => {
         const isConfirm = window.confirm(
             'Are you sure that you want to delete this data?'
         );
         if (isConfirm) {
-            axios
-                .delete(`/movies/${id}`, {
+            try {
+                // Delete the movie from the database
+                await axios.delete(`/movies/${id}`, {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                     },
-                })
-                .then(() => {
-                    // Update the movie list by removing the deleted movie
-                    const updatedList = list.filter((movie) => movie.id !== id);
-                    setList(updatedList);
                 });
+
+                // Update the movie list by removing the deleted movie
+                const updatedList = list.filter((movie) => movie.id !== id);
+
+                // Reassign IDs to remaining movies
+                const reorderedList = updatedList.map((movie, index) => ({
+                    ...movie,
+                    id: index + 1,
+                }));
+
+                // Update the database with new IDs
+                updateMovieIds(reorderedList);
+
+                // Update the front-end state
+                setList(reorderedList);
+            } catch (error) {
+                console.error('Error deleting movie:', error);
+            }
         }
     };
 
@@ -44,19 +73,19 @@ const List = () => {
     };
 
     return (
-        <div className='list-container'>
-            <div className='create-container'>
+        <div className="list-container">
+            <div className="create-container">
                 <button
-                    type='button'
+                    type="button"
                     onClick={() => {
                         navigate('/main/movies/form');
                     }}
                 >
-                    Create new
+                    Create New
                 </button>
             </div>
-            <div className='table-container'>
-                <table className='movie-list'>
+            <div className="table-container">
+                <table className="movie-list">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -70,13 +99,10 @@ const List = () => {
                                 <td>{movie.id}</td>
                                 <td>{movie.title}</td>
                                 <td>
-                                    <button
-                                        type='button'
-                                        onClick={() => handleUpdate(movie.id)}
-                                    >
+                                    <button type="button" onClick={() => handleUpdate(movie.id)}>
                                         Edit
                                     </button>
-                                    <button type='button' onClick={() => handleDelete(movie.id)}>
+                                    <button type="button" onClick={() => handleDelete(movie.id)}>
                                         Delete
                                     </button>
                                 </td>
