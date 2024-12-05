@@ -26,7 +26,7 @@ const List = () => {
             if (movie.id !== newId) {
                 axios.put(`/movies/${movie.id}`, { id: newId }, {
                     headers: {
-                        Authorization: `Bearer ${accessToken}`,
+                        Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZmZlNDkxOGE2NTAxZjg4OTFmNWU2Zjk0OWVmZjNhZSIsIm5iZiI6MTczMTIwMTY3NC43MTUwMDAyLCJzdWIiOiI2NzMwMGE4YTQ1Yjg3MDIzMTk2MmJiNDUiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.GKLJ5LU21KWKSR2D6QWTo9O6HB_-P0-gqiGByTEMzHU`,
                     },
                 });
             }
@@ -43,7 +43,7 @@ const List = () => {
                 // Delete the movie from the database
                 await axios.delete(`/movies/${id}`, {
                     headers: {
-                        Authorization: `Bearer ${accessToken}`,
+                        Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZmZlNDkxOGE2NTAxZjg4OTFmNWU2Zjk0OWVmZjNhZSIsIm5iZiI6MTczMTIwMTY3NC43MTUwMDAyLCJzdWIiOiI2NzMwMGE4YTQ1Yjg3MDIzMTk2MmJiNDUiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.GKLJ5LU21KWKSR2D6QWTo9O6HB_-P0-gqiGByTEMzHU`,
                     },
                 });
 

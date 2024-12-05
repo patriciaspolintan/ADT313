@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useCallback, useEffect, useState } from 'react';
-import { useParams, useNavigate, Outlet, NavLink } from 'react-router-dom';
+import { useParams, useNavigate, Outlet } from 'react-router-dom';
 import './Form.css';
 
 const Form = () => {
@@ -16,24 +16,121 @@ const Form = () => {
     const [posterPath, setPosterPath] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [error, setError] = useState('');
+    const [error, setError] = useState(''); // State for error messages
     let { movieId } = useParams();
     const navigate = useNavigate();
 
-    // Fetch movie details if editing an existing movie
+    const handleSearch = useCallback((page = 1) => {
+        setError(''); // Clear any previous errors
+        axios({
+            method: 'get',
+            url: 'https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc',
+            headers: {
+                Accept: 'application/json',
+                Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZmZlNDkxOGE2NTAxZjg4OTFmNWU2Zjk0OWVmZjNhZSIsIm5iZiI6MTczMTIwMTY3NC43MTUwMDAyLCJzdWIiOiI2NzMwMGE4YTQ1Yjg3MDIzMTk2MmJiNDUiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.GKLJ5LU21KWKSR2D6QWTo9O6HB_-P0-gqiGByTEMzHU', // Update with your API key
+            },
+        })
+            .then((response) => {
+                setSearchedMovieList(response.data.results);
+                setCurrentPage(page);
+                setTotalPages(response.data.total_pages);
+            })
+            .catch((error) => {
+                console.error(error);
+                setError('Failed to search for movies at this time. Please try again later.');
+            });
+    }, [query]);
+
+    const handleSelectMovie = (movie) => {
+        setSelectedMovie(movie);
+        setTitle(movie.original_title);
+        setOverview(movie.overview);
+        setPopularity(movie.popularity);
+        setReleaseDate(movie.release_date);
+        setVoteAverage(movie.vote_average);
+        setPosterPath(`https://image.tmdb.org/t/p/original/${movie.poster_path}`);
+    };
+
+    const handleSave = () => {
+        setError(''); // Clear any previous errors
+        const accessToken = localStorage.getItem('accessToken');
+        if (!title || !overview) {
+            alert('Please fill in the required fields.');
+            return;
+        }
+        const data = {
+            tmdbId: selectedMovie?.id,
+            title: title,
+            overview: overview,
+            popularity: popularity,
+            releaseDate: releaseDate,
+            voteAverage: voteAverage,
+            backdropPath: selectedMovie
+                ? `https://image.tmdb.org/t/p/original/${selectedMovie.backdrop_path}`
+                : movie?.backdropPath,
+            posterPath: selectedMovie
+                ? `https://image.tmdb.org/t/p/original/${selectedMovie.poster_path}`
+                : posterPath,
+            isFeatured: 0,
+        };
+
+        const requestMethod = movieId ? 'patch' : 'post';
+        const requestUrl = movieId ? `/movies/${movieId}` : '/movies';
+
+        axios({
+            method: requestMethod,
+            url: requestUrl,
+            data: data,
+            headers: {
+                Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZmZlNDkxOGE2NTAxZjg4OTFmNWU2Zjk0OWVmZjNhZSIsIm5iZiI6MTczMTIwMTY3NC43MTUwMDAyLCJzdWIiOiI2NzMwMGE4YTQ1Yjg3MDIzMTk2MmJiNDUiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.GKLJ5LU21KWKSR2D6QWTo9O6HB_-P0-gqiGByTEMzHU`,
+            },
+        })
+            .then(() => {
+                alert('Success');
+                navigate('/main/movies');
+            })
+            .catch((error) => {
+                console.error(error);
+                setError('Failed to save the movie. Please try again later.');
+            });
+    };
+
+    const handleDelete = () => {
+        setError(''); // Clear any previous errors
+        if (!movieId) {
+            setError('Movie ID is not available for deletion.');
+            return;
+        }
+        const accessToken = localStorage.getItem('accessToken');
+
+        axios({
+            method: 'delete',
+            url: `/movies/${movieId}`,
+            headers: {
+                Authorization: `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjZmZlNDkxOGE2NTAxZjg4OTFmNWU2Zjk0OWVmZjNhZSIsIm5iZiI6MTczMTIwMTY3NC43MTUwMDAyLCJzdWIiOiI2NzMwMGE4YTQ1Yjg3MDIzMTk2MmJiNDUiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.GKLJ5LU21KWKSR2D6QWTo9O6HB_-P0-gqiGByTEMzHU`,
+            },
+        })
+            .then(() => {
+                alert('Movie deleted successfully');
+                navigate('/main/movies');
+            })
+            .catch((error) => {
+                console.error(error);
+                setError('Failed to delete the movie. Please try again later.');
+            });
+    };
+
     useEffect(() => {
         if (movieId) {
-            axios
-                .get(`/movies/${movieId}`)
+            axios.get(`/movies/${movieId}`)
                 .then((response) => {
-                    const data = response.data;
-                    setMovie(data);
-                    setTitle(data.title);
-                    setOverview(data.overview);
-                    setPopularity(data.popularity);
-                    setReleaseDate(data.releaseDate);
-                    setVoteAverage(data.voteAverage);
-                    setPosterPath(data.posterPath);
+                    setMovie(response.data);
+                    setTitle(response.data.title);
+                    setOverview(response.data.overview);
+                    setPopularity(response.data.popularity);
+                    setReleaseDate(response.data.releaseDate);
+                    setVoteAverage(response.data.voteAverage);
+                    setPosterPath(response.data.posterPath);
                 })
                 .catch((error) => {
                     console.error(error);
@@ -42,51 +139,120 @@ const Form = () => {
         }
     }, [movieId]);
 
-    const handleSave = () => {
-        // Save logic (unchanged)
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            handleSearch(currentPage + 1);
+        }
     };
 
-    const handleDelete = () => {
-        // Delete logic (unchanged)
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            handleSearch(currentPage - 1);
+        }
     };
 
     return (
         <>
             <h1>{movieId !== undefined ? 'Edit ' : 'Create '} Movie</h1>
-            {error && <p className="error-message">{error}</p>}
-            <div className="container">
-                <form>
-                    <div className="movie-info">
-                        {posterPath && <img className="poster-image" src={posterPath} alt={title} />}
-                        <div className="movie-details">
-                            {/* Movie fields */}
-                            <div className="field">
-                                <label>Title:</label>
-                                <input
-                                    type="text"
-                                    value={title}
-                                    onChange={(event) => setTitle(event.target.value)}
-                                />
-                            </div>
-                            <div className="field">
-                                <label>Overview:</label>
-                                <textarea
-                                    rows={10}
-                                    value={overview}
-                                    onChange={(event) => setOverview(event.target.value)}
-                                />
-                            </div>
-                            {/* Other fields */}
-                            <button type="button" onClick={handleSave}>
-                                Save
+            {error && <p className="error-message">{error}</p>} {/* Display error message */}
+            {movieId === undefined && (
+                <>
+                    <div className='search-container'>
+                        Search Movie:{' '}
+                        <input
+                            type='text'
+                            onChange={(event) => setQuery(event.target.value)}
+                        />
+                        <button type='button' onClick={() => handleSearch(1)}>
+                            Search
+                        </button>
+                        <div className='searched-movie'>
+                            {searchedMovieList.map((movie) => (
+                                <p key={movie.id} onClick={() => handleSelectMovie(movie)}>
+                                    {movie.original_title}
+                                </p>
+                            ))}
+                        </div>
+                        <div className='pagination'>
+                            <button
+                                type='button'
+                                onClick={handlePreviousPage}
+                                disabled={currentPage === 1}
+                            >
+                                Previous
                             </button>
-                            {movieId && (
-                                <button type="button" onClick={handleDelete} className="delete-button">
-                                    Delete
-                                </button>
-                            )}
+                            <span>
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button
+                                type='button'
+                                onClick={handleNextPage}
+                                disabled={currentPage === totalPages}
+                            >
+                                Next
+                            </button>
                         </div>
                     </div>
+                    <hr />
+                </>
+            )}
+            <div className='container'>
+                <form>
+                    {posterPath && (
+                        <img
+                            className='poster-image'
+                            src={posterPath}
+                            alt={title}
+                        />
+                    )}
+                    <div className='field'>
+                        Title:
+                        <input
+                            type='text'
+                            value={title}
+                            onChange={(event) => setTitle(event.target.value)}
+                        />
+                    </div>
+                    <div className='field'>
+                        Overview:
+                        <textarea
+                            rows={10}
+                            value={overview}
+                            onChange={(event) => setOverview(event.target.value)}
+                        />
+                    </div>
+                    <div className='field'>
+                        Popularity:
+                        <input
+                            type='text'
+                            value={popularity}
+                            onChange={(event) => setPopularity(event.target.value)}
+                        />
+                    </div>
+                    <div className='field'>
+                        Release Date:
+                        <input
+                            type='text'
+                            value={releaseDate}
+                            onChange={(event) => setReleaseDate(event.target.value)}
+                        />
+                    </div>
+                    <div className='field'>
+                        Vote Average:
+                        <input
+                            type='text'
+                            value={voteAverage}
+                            onChange={(event) => setVoteAverage(event.target.value)}
+                        />
+                    </div>
+                    <button type='button' onClick={handleSave}>
+                        Save
+                    </button>
+                    {movieId && (
+                        <button type='button' onClick={handleDelete} className="delete-button">
+                            Delete
+                        </button>
+                    )}
                 </form>
             </div>
 
@@ -94,30 +260,27 @@ const Form = () => {
             <div>
                 <hr />
                 <nav>
-                    <ul className="tabs">
-                        <li>
-                            <NavLink
-                                to={`/main/movies/form/${movieId}/cast-and-crews`}
-                                className={({ isActive }) => (isActive ? 'active-tab' : '')}
-                            >
-                                Cast & Crews
-                            </NavLink>
+                    <ul className='tabs'>
+                        <li
+                            onClick={() => {
+                                navigate(`/main/movies/form/${movieId}/cast-and-crews`);
+                            }}
+                        >
+                            Cast & Crews
                         </li>
-                        <li>
-                            <NavLink
-                                to={`/main/movies/form/${movieId}/videos`}
-                                className={({ isActive }) => (isActive ? 'active-tab' : '')}
-                            >
-                                Videos
-                            </NavLink>
+                        <li
+                            onClick={() => {
+                                navigate(`/main/movies/form/${movieId}/videos`);
+                            }}
+                        >
+                            Videos
                         </li>
-                        <li>
-                            <NavLink
-                                to={`/main/movies/form/${movieId}/photos`}
-                                className={({ isActive }) => (isActive ? 'active-tab' : '')}
-                            >
-                                Photos
-                            </NavLink>
+                        <li
+                            onClick={() => {
+                                navigate(`/main/movies/form/${movieId}/photos`);
+                            }}
+                        >
+                            Photos
                         </li>
                     </ul>
                 </nav>
@@ -125,6 +288,8 @@ const Form = () => {
             </div>
         </>
     );
+
+
 };
 
 export default Form;
